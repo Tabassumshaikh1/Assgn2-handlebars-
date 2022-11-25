@@ -1,22 +1,38 @@
-const express=require('express');
-const PORT=7000;
-const exphbs=require('express-handlebars');
-const app=express();
-var path=require('path');
-app.engine('handlebars',exphbs.engine())
-app.set('view engine','handlebars');
-app.set('views','./views');
-app.use("/static",express.static(path.join(__dirname,"public")));
+const express=require('express')
+const app=express()
+const fs= require('fs');
+app.use(express.json())
+app.use(express.urlencoded({extended:false}));
+const PORT=5000;
+app.set('view engine','ejs')
+app.set('s','./views')
 app.get("/",(req,res)=>{
+    res.render('home')
+})
+app.get("/login",(req,res)=>{
+    res.render('login')
+})
+app.get("/registration",(req,res)=>{
+    res.render('registration',{errmsg:'',successmsg:''});
+})
+app.post("/postdata",(req,res)=>{
+    const name=req.body.name;
+    const email=req.body.email;
+    const password=req.body.password;
+    
+    const age=req.body.age;
+    const city=req.body.city;
 
-    res.render('index');
-})
-app.get("/about",(req,res)=>{
-    res.render('about');
-})
-app.listen(PORT,(err)=>{
-    if(err)  throw err
-    else{
-        console.log(`ServerWork on ${PORT}`);
+    let data=('name :'+name+ '\nEmail :'+email+ '\nPassword :'+password+ '\nAge : '+age+ '\nCity'+city);
+    if(!fs.existsSync(`./users/${email}`)){
+        fs.mkdirSync(`./users/${email}`);
+        fs.writeFileSync(`./users/${email}/details.txt`,`${data.toString()}`);
+        res.render('registration',{successmsg:'User registered successfully',errmsg:''});
     }
+    else{
+        res.render('registration',{errmsg:'User Already Exists',successmsg:''});
+    }
+
 })
+
+app.listen(PORT)
